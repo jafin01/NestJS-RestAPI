@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Controller, Get, Param, Res } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Response } from 'express';
 import { isValidObjectId, ObjectId } from 'mongoose';
@@ -8,11 +7,14 @@ import { isValidObjectId, ObjectId } from 'mongoose';
 export class UsersController {
   constructor(private usersServices: UsersService) {}
 
-  // GET /users
+  // GET /api/users
   @Get()
   async GetAllUsers(@Res({ passthrough: true }) res: Response) {
     try {
       const users = await this.usersServices.findAllUsers();
+      if (users.length < 1) {
+        throw new Error('No users found !!');
+      }
       return users;
     } catch (error) {
       res.status(500);
@@ -23,7 +25,7 @@ export class UsersController {
     }
   }
 
-  // GET /users/:id
+  // GET /api/users/:id
   @Get(':id')
   async getUserById(
     @Res({ passthrough: true }) res: Response,
@@ -41,32 +43,6 @@ export class UsersController {
 
       return user;
     } catch (error) {
-      res.status(400);
-      return {
-        error: error.message,
-        stack: error.stack,
-      };
-    }
-  }
-
-  // POST /users
-  @Post()
-  async createUser(
-    @Res({ passthrough: true }) res: Response,
-    @Body() user: CreateUserDto,
-  ) {
-    const { email } = user;
-    try {
-      const user = await this.usersServices.findUserByEmail(email);
-      if (user) {
-        throw new Error('User already exists !!');
-      }
-
-      const response = await this.usersServices.saveUser(user);
-      return response;
-    } catch (error) {
-      // const statusCode = res.statusCode ? res.statusCode : 500;
-      // res.status(statusCode);
       res.status(400);
       return {
         error: error.message,

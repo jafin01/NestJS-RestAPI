@@ -6,7 +6,7 @@ import {
   Length,
   Min,
 } from 'class-validator';
-import { Role } from '../schemas/user.schema';
+import { Role } from 'src/schemas/user.schema';
 
 export class CreateUserDto {
   @IsInt()
