@@ -3,6 +3,12 @@ import { UsersService } from './user.service';
 import { Request, Response } from 'express';
 import { isValidObjectId, ObjectId } from 'mongoose';
 import { AuthGuard } from '@nestjs/passport';
+import { handleError, handleSuccess } from 'src/helpers/returnHelper';
+import {
+  ERROR_PRIORITY,
+  objectIdInvalidException,
+  userNotFoundException,
+} from 'src/constants/errorConsts';
 
 @Controller('api/users')
 export class UsersController {
@@ -18,15 +24,12 @@ export class UsersController {
       console.log(req.user);
       const users = await this.usersServices.findAllUsers();
       if (users.length < 1) {
-        throw new Error('No users found !!');
+        throw new Error(userNotFoundException);
       }
-      return users;
+      return handleSuccess(users);
     } catch (error) {
       res.status(500);
-      return {
-        error: error.message,
-        stack: error.stack,
-      };
+      return handleError(error.message, ERROR_PRIORITY.HIGH);
     }
   }
 
@@ -37,21 +40,19 @@ export class UsersController {
   ) {
     try {
       if (!isValidObjectId(id)) {
-        throw new Error('Object Id invalid !!');
+        throw new Error(objectIdInvalidException);
       }
 
       const user = await this.usersServices.findUserById(id);
       if (!user) {
-        throw new Error('User not found !!');
+        throw new Error(userNotFoundException);
       }
 
-      return user;
+      // return user;
+      return handleSuccess(user);
     } catch (error) {
       res.status(400);
-      return {
-        error: error.message,
-        stack: error.stack,
-      };
+      return handleError(error.message, ERROR_PRIORITY.LOW);
     }
   }
 }
