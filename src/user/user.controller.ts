@@ -1,16 +1,21 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Get, Param, Req, Res, UseGuards } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { isValidObjectId, ObjectId } from 'mongoose';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('api/users')
 export class UsersController {
   constructor(private usersServices: UsersService) {}
 
-  // GET /api/users
   @Get()
-  async GetAllUsers(@Res({ passthrough: true }) res: Response) {
+  @UseGuards(AuthGuard())
+  async GetAllUsers(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     try {
+      console.log(req.user);
       const users = await this.usersServices.findAllUsers();
       if (users.length < 1) {
         throw new Error('No users found !!');
@@ -25,7 +30,6 @@ export class UsersController {
     }
   }
 
-  // GET /api/users/:id
   @Get(':id')
   async getUserById(
     @Res({ passthrough: true }) res: Response,

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { loginDto } from './dto/login.dto';
+import * as argon2 from 'argon2';
 
 @Controller('api/auth')
 export class AuthController {
@@ -28,8 +28,7 @@ export class AuthController {
         throw new Error('User already exists !!');
       }
 
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+      const hashedPassword = await argon2.hash(password);
 
       const createdUser = await this.authServices.saveUser({
         ...req.body,
@@ -57,7 +56,7 @@ export class AuthController {
         throw new Error('User not found !!');
       }
 
-      const isPasswordMatched = await bcrypt.compare(password, user.password);
+      const isPasswordMatched = await argon2.verify(user.password, password);
       if (!isPasswordMatched) {
         throw new Error(
           'Authentication failed due to mismatch in username or password',
